@@ -86,8 +86,8 @@ encryptDigrams digrams table = [ encrypt (a,b) table | (a,b) <- digrams]
 -- encrypts a single digram
 encrypt :: Digram -> CipherTable -> Digram
 encrypt digram table
-  | (sameRow digram table) = swapInRow digram table
-  | (sameColumn digram table) = swapInColumn digram table
+  | (sameRow digram table) = swap digram table shiftRight
+  | (sameColumn digram table) = swap digram table shiftDown
   | otherwise = swapInRectangle digram table
 
 {- ENCRYPTION HELPERS -}
@@ -104,18 +104,6 @@ sameColumn digram table = snd (getPosition first table) == snd (getPosition seco
   first = fst digram
   second = snd digram
 
--- returns an encrypted digram with characters in the same row
-swapInRow :: Digram -> CipherTable -> Digram
-swapInRow digram table = (getElem (shiftRight firstPos) table, getElem (shiftRight secondPos) table) where
-  firstPos = getPosition (fst digram) table
-  secondPos = getPosition (snd digram) table
-
--- returns an encrypted digram with characters in the same column
-swapInColumn :: Digram -> CipherTable -> Digram
-swapInColumn digram table = (getElem (shiftDown firstPos) table, getElem (shiftDown secondPos) table) where
-  firstPos = getPosition (fst digram) table
-  secondPos = getPosition (snd digram) table
-
 -- returns an encrypted digram with characters in the same rectangle
 swapInRectangle :: Digram -> CipherTable -> Digram
 swapInRectangle digram table = (getElem (fst firstPos, snd secondPos) table, getElem (fst secondPos, snd firstPos) table) where
@@ -129,6 +117,14 @@ shiftRight (i, j) = if (j == 5) then (i, 1) else (i, j + 1)
 -- shifts the position one row down
 shiftDown :: Pos -> Pos
 shiftDown (i, j) = if (i == 5) then (1, j) else (i + 1, j)
+
+-- shifts the position one column to the left
+shiftLeft :: Pos -> Pos
+shiftLeft (i, j) = if (j == 1) then (i, 5) else (i, j - 1)
+
+-- shifts the position one row up
+shiftUp :: Pos -> Pos
+shiftUp (i, j) = if (i == 1) then (5, j) else (i - 1, j)
 
 {- MATRIX HELPERS -}
 
@@ -146,7 +142,23 @@ getElem pos matrix = head [elem | (x, elem) <- matrix, x == pos]
 
 -- takes a piece of ciphertext and a key; returns a decoded string
 decodePlayfair :: String -> String -> String
-decodePlayfair ciphertext key = ciphertext
+decodePlayfair ciphertext key = fromDigrams (decryptDigrams (toDigrams(upcase ciphertext)) (toCipherTable(upcase key)))
+
+-- encrypts a list of digrams using the given cipher table
+decryptDigrams :: [Digram] -> CipherTable -> [Digram]
+decryptDigrams digrams table = [ decrypt (a,b) table | (a,b) <- digrams]
+
+-- encrypts a single digram
+decrypt :: Digram -> CipherTable -> Digram
+decrypt digram table
+  | (sameRow digram table) = swap digram table shiftLeft
+  | (sameColumn digram table) = swap digram table shiftUp
+  | otherwise = swapInRectangle digram table
+
+swap :: Digram -> CipherTable -> (Pos -> Pos) -> Digram
+swap digram table fun = (getElem (fun firstPos) table, getElem (fun secondPos) table) where
+  firstPos = getPosition (fst digram) table
+  secondPos = getPosition (snd digram) table
 
 -- TODO - this should be almost identical - just need to shift left and up instead of right and down
 
@@ -157,6 +169,12 @@ decodePlayfair ciphertext key = ciphertext
 solvePlayfair :: String -> String
 solvePlayfair ciphertext = ciphertext
 
+generateRandomCipherTable = toCipherTable (permutateString "ABCDEFGHIKLMNOPQRSTUVWXYZ")
 
 
-
+-- start with calling something like..
+-- foo cipherText getRandomKey 
+--  randomKey = 
+--  randomKeyScore = evaluate (decodePlayfair (toCipherTable))
+foo cipherText bestKey maxScore 300 = bestKey
+foo cipherText bestKey maxScore count = 
