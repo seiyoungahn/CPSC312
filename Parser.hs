@@ -1,6 +1,9 @@
 module Parser where
 
-import System.IO
+import Prelude hiding (lookup) 
+import System.IO 
+import Data.List hiding (lookup) 
+import Data.Map
 
 -- read quadgrams textfile and convert it into list of tuples. both quadgrams and score are represented as string
 parseQuadgrams :: [Char] -> [([Char], [Char])] -> Bool -> [([Char], [Char])]
@@ -19,7 +22,28 @@ parseQuadgrams lst acc quadgram =
 convertScore :: [([Char], [Char])] -> [([Char], Integer)]
 convertScore lst = [ (quadgrams, read score :: Integer) | (quadgrams, score) <- lst ]
 
-parse n = 
+-- get map with quadgram as the key and score as the value
+getQuadgramMap =
     do
         file <- readFile "quadgrams.txt"
-        return (convertScore (take n (parseQuadgrams file [("", "")] True)))
+        return (fromList(convertScore (parseQuadgrams file [("", "")] True)))
+
+-- for testing and looking up
+-- parse = 
+--     do
+--         file <- readFile "quadgrams.txt"
+--         putStrLn "parsing.."
+--         let quadgramMap = fromList(convertScore (parseQuadgrams file [("", "")] True))
+--         putStrLn ("size: " ++ (show (size quadgramMap)))
+--         putStrLn "parsing done!"
+--         getScore quadgramMap
+--         return "program finished"
+-- getScore quadgramMap =
+--     do
+--         putStrLn ("enter quadgram. size: " ++ (show (size quadgramMap)))
+--         quadgram <- getLine
+--         let score = lookup quadgram quadgramMap
+--         putStrLn (show score)
+--         getScore quadgramMap
+--         return "program finished"
+
