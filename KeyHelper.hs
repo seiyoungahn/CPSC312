@@ -39,7 +39,7 @@ swapTwoCols key =
 
 getRandomNum a b =
     do 
-        num <- randomRIO(a, b)
+        num <- randomRIO(a, b) :: IO Integer
         return num
 
 getRandomProbability =

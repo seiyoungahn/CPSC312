@@ -216,7 +216,7 @@ solvePlayfair2 ciphertext =
 
 
 
-
+solve2 :: String -> Integer -> String -> QuadgramMap -> Float -> Integer -> IO ()
 solve2 ciphertext maxScore key map temp acc =
     do
         randomNum <- getRandomNum 1 50
@@ -238,7 +238,7 @@ solve2 ciphertext maxScore key map temp acc =
 
                 solve2 ciphertext score newKey map temp acc
             else do
-                let probability = 1 / (2.718 ^ (fromIntegral(scoreDiff) / temp))
+                let probability = 1 / (2.718 ^ (fromIntegral scoreDiff) / temp)
                 randomProb <- getRandomProbability
 
                 if (probability > randomProb)
@@ -252,8 +252,8 @@ solve2 ciphertext maxScore key map temp acc =
 
 
 
--- calculateTemp :: String -> Double
-calculateTemp text = ((length text) - 84) * 0.087 + 10
+calculateTemp :: String -> Float
+calculateTemp text = fromIntegral((length text) - 84) * 0.087 + 10
 
 
 -- takes a string and returns a list of quadgram permutations
