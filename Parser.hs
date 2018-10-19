@@ -20,8 +20,8 @@ parseQuadgrams lst acc quadgram =
         (quad, score) = head acc
 
 -- convert parsed list of tuples so that the score becomes an integer
-convertScore :: [([Char], [Char])] -> [([Char], Integer)]
-convertScore lst = [ (quadgrams, read score :: Integer) | (quadgrams, score) <- lst ]
+convertScore :: [([Char], [Char])] -> [([Char], Float)]
+convertScore lst = [ (quadgrams, read score :: Float) | (quadgrams, score) <- lst ]
 
 -- get map with quadgram as the key and score as the value
 getQuadgramMap =

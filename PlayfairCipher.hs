@@ -16,7 +16,7 @@ type Digram = (Char, Char)
 type Pos = (Int, Int)
 type Matrix t = [(Pos, t)]
 type CipherTable = Matrix Char
-type QuadgramMap = Map [Char] Integer
+type QuadgramMap = Map [Char] Float
 
 positions = [
   (1,1), (1,2), (1,3), (1,4), (1,5),
@@ -179,7 +179,7 @@ solvePlayfair ciphertext =
         solve ciphertext score randomKey quadgramsMap 0
 
 
-solve :: String -> Integer -> String -> QuadgramMap -> Int -> IO ()
+solve :: String -> Float -> String -> QuadgramMap -> Int -> IO ()
 solve ciphertext maxScore key map acc = 
     do 
         newKey <- if (acc > 300) then getRandomKey else swapTwo key
@@ -200,7 +200,7 @@ solve ciphertext maxScore key map acc =
 
 solvePlayfair2 ciphertext =
     do
-        let temperature = calculateTemp ciphertext
+        let temperature = 50.0 -- calculateTemp ciphertext
 
         randomKey <- getRandomKey
         quadgramsMap <- getQuadgramMap
@@ -216,14 +216,21 @@ solvePlayfair2 ciphertext =
 
 
 
-solve2 :: String -> Integer -> String -> QuadgramMap -> Float -> Integer -> IO ()
+solve2 :: String -> Float -> String -> QuadgramMap -> Float -> Integer -> IO ()
 solve2 ciphertext maxScore key map temp acc =
     do
         randomNum <- getRandomNum 1 50
 
-        let newKey = if (randomNum == 1) then swapTwoRows key else if (randomNum == 2) then swapTwoCols key else swapTwo key
+        let newKey = if (randomNum == 1) then swapTwoRows key
+            else if (randomNum == 2) then swapTwoCols key
+            else if (randomNum == 3) then flipTopBottom key
+            else if (randomNum == 4) then flipLeftRight key
+            else if (randomNum == 5) then flipAcross key
+            else swapTwo key
 
-        newKey <- if (acc > 50000) then getRandomKey else swapTwo key     
+        newKey <- if (acc > 50000) then getRandomKey else newKey     
+
+        if (acc > 50000) then do putStrLn ("Got random key: " ++ newKey) else putChar('.')
 
         let decodeAttempt = decodePlayfair ciphertext newKey
         let quadgrams = getQuadgrams decodeAttempt
@@ -231,14 +238,14 @@ solve2 ciphertext maxScore key map temp acc =
 
         let scoreDiff = maxScore - score 
 
-        if (scoreDiff < 0)
+        if (scoreDiff < 0) -- parent score is lower than the child
             then do
                 putStrLn ("Decode Attempt: " ++ decodeAttempt)
                 putStrLn ("Score: " ++ (show score) ++ " - Key: " ++ newKey)
 
                 solve2 ciphertext score newKey map temp acc
             else do
-                let probability = 1 / (2.718 ^ (fromIntegral scoreDiff) / temp)
+                let probability = 1 / (2.718 ** (scoreDiff / temp))
                 randomProb <- getRandomProbability
 
                 if (probability > randomProb)
@@ -263,11 +270,11 @@ getQuadgrams text
     | otherwise = []
 
 -- takes a list of quadgrams and assigns it a total score
-scoreQuadgrams :: [String] -> QuadgramMap -> Integer
-scoreQuadgrams quadgrams map = sum [fromMaybe 0 (scoreQuadgram x map) | x <- quadgrams]
+scoreQuadgrams :: [String] -> QuadgramMap -> Float
+scoreQuadgrams quadgrams map = sum [logBase 10 ((fromMaybe 0.01 (scoreQuadgram x map)) / 4224127912.0) | x <- quadgrams]
 
 -- takes a single quadgram and looks up the score for it
-scoreQuadgram :: String -> QuadgramMap -> Maybe Integer
+scoreQuadgram :: String -> QuadgramMap -> Maybe Float
 scoreQuadgram quadgram map = Map.lookup quadgram map
 
 

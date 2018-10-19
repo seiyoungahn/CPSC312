@@ -37,6 +37,21 @@ swapTwoCols key =
 
         if (result == key) then swapTwoCols key else return result
 
+flipTopBottom key =
+    do
+        return (concat (swapTwo' 1 3 (swapTwo' 0 4 (getRows key))))
+
+flipLeftRight key =
+    do
+        return (colConcat (swapTwo' 1 3 (swapTwo' 0 4 (getCols key))))
+
+flipAcross key =
+    do
+        return (flipAcross' key [(1,5),(2,10),(3,15),(4,20),(7,11),(8,16),(9,21),(13,17),(14,22),(19,23)])
+
+flipAcross' key [] = key
+flipAcross' key lst = flipAcross' (swapTwo' (fst (head lst)) (snd (head lst)) key) (tail lst)
+
 getRandomNum a b =
     do 
         num <- randomRIO(a, b) :: IO Integer
@@ -79,8 +94,4 @@ getCol col key = [ x | (i, x) <- (zip [0..] key), ((i `mod` 5) == col) ]
 colConcat :: [String] -> String
 colConcat [] = []
 colConcat cols = [ head col | col <- cols, col /= [] ] ++ colConcat [ tail col | col <- cols, col /= []]
-
-
-
-
 
